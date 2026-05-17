@@ -88,3 +88,24 @@
 # print(lst) 
 # element 6 survived because 
 # elements get back when loop so use filter maps etc
+
+
+# race condition example and cure with lock
+
+import threading
+
+counter =0
+lock=threading.Lock()
+def func():
+    global counter 
+    with lock:
+        counter+=1
+
+t1=threading.Thread(target=func)
+t2=threading.Thread(target=func)
+
+t1.start()
+t2.start()
+t1.join()
+t2.join()
+print(counter)
