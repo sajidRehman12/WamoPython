@@ -92,20 +92,107 @@
 
 # race condition example and cure with lock
 
-import threading
+# import threading
 
-counter =0
-lock=threading.Lock()
-def func():
-    global counter 
-    with lock:
-        counter+=1
+# counter =0
+# lock=threading.Lock()
+# def func():
+#     global counter 
+#     with lock:
+#         counter+=1
 
-t1=threading.Thread(target=func)
-t2=threading.Thread(target=func)
+# t1=threading.Thread(target=func)
+# t2=threading.Thread(target=func)
 
-t1.start()
-t2.start()
-t1.join()
-t2.join()
-print(counter)
+# t1.start()
+# t2.start()
+# t1.join()
+# t2.join()
+# print(counter)
+
+# using signals
+# import threading, time
+
+# event = threading.Event()
+
+# def waiter(name):
+#     print(f"{name}: waiting for signal...")
+#     event.wait()                   
+#     print(f"{name}: got the signal!")
+
+# def signaler():
+#     time.sleep(2)
+#     print("Signaler: sending signal!")
+#     event.set()                 
+
+# threads = [threading.Thread(target=waiter, args=(f"T{i}",)) for i in range(3)]
+# threads.append(threading.Thread(target=signaler))
+
+# for t in threads: t.start()
+# for t in threads: t.join()
+
+
+
+ 
+import os,pathlib
+def gen():
+    print("Start")
+    yield 1
+    print("Middle")
+    yield 2
+    print("End")
+
+
+def gentoreadfile():
+    with open("myfile.txt","r") as f:
+        for line in f:
+            yield line
+class iterator():
+    myCounter=10
+    curr=0
+    def __iter__(self):
+        return self
+    def __next__(self):
+        if self.curr <self.myCounter:
+            curr=self.curr
+            self.curr+=1
+            return curr
+        raise StopIteration 
+        
+iter=iterator()
+
+print(iter)
+
+
+l=list([1,2,3,4,5,6,7,7,8,9,])
+
+
+d={"key":"value","pair":"pair"}
+def func(**d):
+    d["key"]="changed"
+    print(d)
+
+if __name__ == "__main__":
+  
+    print(os.getcwd())
+    print(os.listdir())
+    with open("myfile.txt","a") as f:
+        f.write("this is data from basics.py\n")
+    g=gentoreadfile()
+    while True:
+        try:
+            print(next(g))
+        except StopIteration:
+            break
+
+
+    # print(iter)
+    # for i in iter:
+    #     print(i)
+  
+#    func( key="value", pair="pair")
+#    print(d)
+# #    d={ **d,"key":"value","pair":"pair"}
+
+
+

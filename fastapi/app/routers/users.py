@@ -17,6 +17,6 @@ def signup(user:User):
     password=user.password
     email=user.email
     print(username,password,email)
-    return { "username:",username,
+    return {"username:",username,
            "password:",password,
-           "email:", email }
+           "email:",email }
