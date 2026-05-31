@@ -378,6 +378,8 @@
 # print(list(map(lambda x,y,z:x+y+z,a,b,c)))
 
 
-lst = ['hello', 'world', 'python']
+# lst = ['hello', 'world', 'python']
 
-print(list(map(lambda word: word.upper(),lst)))
+# print(list(map(lambda word: word.upper(),lst)))
+
+
