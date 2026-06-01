@@ -12,7 +12,7 @@ app.add_middleware(AuthMiddleware)
 
 @app.get("/")
 def home():
-    return {"mvessage": "Hello FastAPI"}
+    return {"message": "Hello FastAPI"}
 
 app.include_router(wbrouter)
 app.include_router(users.router)

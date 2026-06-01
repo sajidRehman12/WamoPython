@@ -1,4 +1,4 @@
-#!/home/hp/Desktop/fastapi_project/venv/bin/python3
+#!/home/hp/pythonDir/WamoPython/fastapi_project/venv/bin/python3
 # -*- coding: utf-8 -*-
 import re
 import sys
