@@ -1,4 +1,4 @@
-#!/home/hp/pythonDir/WamoPython/product_endpoints_using_alembic/venv/bin/python3
+#!/home/hp/pythonDir/product_endpoints_using_alembic/venv/bin/python
 # -*- coding: utf-8 -*-
 import re
 import sys
