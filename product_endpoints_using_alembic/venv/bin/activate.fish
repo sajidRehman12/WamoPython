@@ -33,7 +33,7 @@ end
 # Unset irrelevant variables.
 deactivate nondestructive
 
-set -gx VIRTUAL_ENV /home/hp/pythonDir/WamoPython/product_endpoints_using_alembic/venv
+set -gx VIRTUAL_ENV /home/hp/pythonDir/product_endpoints_using_alembic/venv
 
 set -gx _OLD_VIRTUAL_PATH $PATH
 set -gx PATH "$VIRTUAL_ENV/"bin $PATH

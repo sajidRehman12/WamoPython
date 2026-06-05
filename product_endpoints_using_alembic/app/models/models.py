@@ -27,7 +27,7 @@ class Product(BaseModel):
     }
 
 class ProductCreate(BaseModel):
-    name: str = Field(..., example="iPhone")
-    description: str = Field(None, example="Apple phone")
-    price: float = Field(..., example=1200)
-    quantity: int = Field(..., example=5)
+    name: str = Field(..., json_schema_extra={"example": "iPhone"})
+    description: str = Field(None, json_schema_extra={"example": "Apple phone"})
+    price: float = Field(..., json_schema_extra={"example": 1200})
+    quantity: int = Field(..., json_schema_extra={"example": 5})
