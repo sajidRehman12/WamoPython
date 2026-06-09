@@ -1,6 +1,7 @@
 # app/services/auth_service.py
 
 from app.repositories.user_repository import UserRepository
+from app.repositories.token_repository import TokenRepository
 from app.core.security import create_access_token
 from passlib.context import CryptContext
 from app.database.mock_db import JWT_DB
@@ -8,8 +9,11 @@ pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 
 class AuthService:
-    def __init__(self, repo: UserRepository):
+    def __init__(self, repo: UserRepository,
+                 tokenRepo: TokenRepository
+                 ):
         self.repo = repo
+        self.tokenrepo=tokenRepo
 
     def verify_password(self, plain_password, hashed_password):
         return pwd_context.verify(plain_password, hashed_password)
@@ -26,19 +30,21 @@ class AuthService:
         token = create_access_token(
             data={"user_id": str(user.id), "email": user.email}
         )
-        JWT_DB.append({"token":token,
-                       "status":"active"})
+
+        self.tokenrepo.save_token(token=token,status="active")
+        
 
         return {
             "access_token": token,
             "token_type": "bearer",
-            "user_id": str(user.id),
-            "email": user.email
         }
     
 
     def logout(self,token:str):
-        for o in JWT_DB:
-            if o["token"]==token:
-                o["status"]="inactive"
-        return "successfully logged out"
+        
+        response=self.tokenrepo.blacklist_user(token=token)
+        
+        if response is True:
+            return "successfully logged out"
+        else:
+            return "user not authorized"

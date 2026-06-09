@@ -9,6 +9,38 @@ from sqlalchemy import CheckConstraint ,ForeignKey ,Boolean
 def _expires_at_default() -> datetime:
     return datetime.now(timezone.utc) + timedelta(hours=24)
 
+
+import uuid
+from datetime import datetime
+
+from sqlalchemy import String, DateTime, ForeignKey
+from sqlalchemy.dialects.postgresql import UUID
+from sqlalchemy.orm import Mapped, mapped_column
+
+from app.database.database import Base
+
+
+class Token(Base):
+    __tablename__ = "tokens"
+
+    id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True),
+        primary_key=True,
+        default=uuid.uuid4
+    )
+    token: Mapped[str] = mapped_column(
+        String,
+        nullable=False,
+        unique=True
+    )
+    
+    status: Mapped[str] = mapped_column(
+        String(20),
+        default="active"
+    )
+
+
+
 class Follow(Base):
     __tablename__ = "follows"
 

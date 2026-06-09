@@ -9,6 +9,7 @@ from app.database.database import get_db
 from app.repositories.user_repository import UserRepository
 from app.core.oauth import get_current_user
 from app.models.tables import User
+from app.repositories.token_repository import TokenRepository
 
 router = APIRouter(prefix="/auth", tags=["Auth"])
 
@@ -33,8 +34,9 @@ def login(
     loginRequest: LoginRequest,
     db: Session = Depends(get_db)
 ):
+    tokenrepo=TokenRepository(db)
     repo = UserRepository(db)
-    service = AuthService(repo)
+    service = AuthService(repo,tokenrepo)
 
     token = service.login_user(
         username=loginRequest.username,
@@ -70,10 +72,11 @@ def get_profile(
 def logout(authorization:str = Header(None),db: Session = Depends(get_db),
            current_user :User = Depends(get_current_user)
  ):
+    tokenRepo=TokenRepository(db)
     repo = UserRepository(db)
-    service = AuthService(repo)
+    service = AuthService(repo,tokenRepo)
     _,token=authorization.split()
-    service.logout(token)
-    return "successfully logged out"
+    return service.logout(token)
+    
 
 

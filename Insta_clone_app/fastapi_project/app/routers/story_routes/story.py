@@ -24,7 +24,7 @@ def get_story_service(db: Session = Depends(get_db)):
 @router.post("/")
 async def create_story(
     file: UploadFile = File(...),
-    # current_user=Depends(get_current_user),
+    current_user=Depends(get_current_user),
     service: StoryService = Depends(get_story_service)
 ):
     media_url=await service.save_story(file)
@@ -46,16 +46,27 @@ async def create_story(
     
 @router.get("/active")
 def get_active_stories(
-    service: StoryService = Depends(get_story_service)
+    service: StoryService = Depends(get_story_service),
+    current_user=Depends(get_current_user)
+
 ):
     return service.get_active_stories()
 
 @router.get("/user/{user_id}")
 def get_user_stories(
     user_id: UUID,
+    current_user=Depends(get_current_user),
+
     service: StoryService = Depends(get_story_service)
 ):
     return service.get_user_stories(user_id)
+
+@router.get("/story-bar")
+def get_followings_stories(service: StoryService = Depends(get_story_service),
+                               current_user=Depends(get_current_user)
+):
+    return service.get_stories_of_followings(current_user.id)
+
 
 @router.delete("/{story_id}")
 def delete_story(

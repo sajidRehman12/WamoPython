@@ -9,7 +9,7 @@ ALLOWED_EXTENSIONS = {".jpg", ".jpeg", ".png",".mp4"}
 
 UPLOAD_DIR = Path("stories")
 UPLOAD_DIR.mkdir(exist_ok=True)
-BASE_URL = "http://localhost:8000/stories"
+BASE_URL = "http://localhost:8000/static/stories"
 
 class StoryService:
 
@@ -40,6 +40,9 @@ class StoryService:
 
         return f"{BASE_URL}/{filename}" 
     
+    def get_stories_of_followings(self,user_id):
+        return self.story_repo.get_stories_of_followings(user_id)
+
     def create_story(
         self,
         user_id: UUID,
