@@ -1,5 +1,6 @@
 from uuid import UUID
 from app.models.tables import Comment
+from app.repositories.post_repository import PostRepository
 class CommentService:
 
     def __init__(
@@ -14,12 +15,12 @@ class CommentService:
 
     def create_comment(
         self,
-        post_id: UUID,
-        user_id: UUID,
+        post_id: int,
+        user_id: int,
         body: str,
-        parent_id: UUID | None = None
+        parent_id: int | None = None
     ):
-        post = self.post_repo.get_by_id(post_id)
+        post = self.post_repo.get_by_id(post_id,user_id)
 
         if not post:
             raise ValueError("Post not found")
@@ -57,7 +58,7 @@ class CommentService:
 
         return comment
 
-    def delete_comment(self, comment_id: UUID, user_id: UUID):
+    def delete_comment(self, comment_id: int, user_id: int):
 
         comment = self.comment_repo.get_by_id(comment_id)
 

@@ -45,6 +45,7 @@ class PostService:
             scheduled_at=sheduled_at,
             published_at=published_at
         )
+        
         return self.repo.create(post)
   
     def get_posts_by_user_id(self,user_id):

@@ -67,6 +67,6 @@
 #     return pwd_context.verify(plain_password, hashed_password)
 
 
-JWT_DB=[]
+# JWT_DB=[]
 
 

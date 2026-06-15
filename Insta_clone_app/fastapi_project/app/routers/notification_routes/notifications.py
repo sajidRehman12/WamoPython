@@ -41,9 +41,11 @@ def get_notifications(
         get_notification_service
     )
 ):
-    return service.get_my_notifications(
+    notifications= service.get_my_notifications(
         current_user.id
     )
+    print(notifications)
+    return notifications
 
 @router.get("/unread")
 def get_unread_notifications(
@@ -69,17 +71,18 @@ def unread_count(
 
 @router.patch("/{notification_id}/read")
 def mark_notification_as_read(
-    notification_id: UUID,
+    notification_id: int,
     current_user=Depends(get_current_user),
     service: NotificationService = Depends(
         get_notification_service
     )
 ):
     try:
-        return service.mark_notification_as_read(
+        service.mark_notification_as_read(
             notification_id,
             current_user.id
         )
+        return "notification marked as read"
 
     except ValueError as ex:
         raise HTTPException(
@@ -105,7 +108,7 @@ def mark_all_notifications_as_read(
     )
 @router.delete("/{notification_id}")
 def delete_notification(
-    notification_id: UUID,
+    notification_id: int,
     current_user=Depends(get_current_user),
     service: NotificationService = Depends(
         get_notification_service
@@ -115,6 +118,7 @@ def delete_notification(
         return service.delete_notification(
             notification_id,
             current_user.id
+
         )
 
     except ValueError as ex:

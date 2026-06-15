@@ -5,6 +5,13 @@ from app.models.tables import Post
 from app.models.tables import User
 from fastapi import HTTPException
 from app.models.tables import Follow
+# from app.models.post import Post
+# from app.models.follow import Follow    
+# from app.models.user import User
+# from app.models.comment import Comment
+# from app.models.token import Token
+# from app.models.notification import Notification
+# from app.models.like import Like 
 class PostRepository:
     def __init__(self, db: Session):
         self.db = db
@@ -18,7 +25,9 @@ class PostRepository:
     def get_all(self):
         return self.db.query(Post).all()
     def get_by_id(self, post_id: str, curr_user_id: str):
-        clean_post_id = post_id.strip()
+
+        
+        clean_post_id = post_id
         post = self.db.query(Post).filter(Post.id == clean_post_id).first()
         if not post:
             return None 
@@ -34,7 +43,7 @@ class PostRepository:
         return None
 
     def get_posts_by_user_id(self, user_id):
-        return self.db.query(Post).filter(Post.user_id==user_id).all()
+        return self.db.query(Post).filter(Post.user_id==user_id,Post.is_published==True).all()
     
 
     def delete(self, post: Post):

@@ -1,9 +1,15 @@
 from uuid import UUID
 
 from sqlalchemy.orm import Session
-
+from app.models.tables import User
 from app.models.tables import Notification
-
+# from app.models.post import Post
+# from app.models.follow import Follow    
+# from app.models.user import User
+# from app.models.comment import Comment
+# from app.models.token import Token
+# from app.models.notification import Notification
+# from app.models.like import Like 
 
 class NotificationRepository:
 
@@ -14,14 +20,32 @@ class NotificationRepository:
         self.db.commit()
         self.db.refresh(notification)
         return notification
-    def get_user_notifications(self, user_id: UUID):
-        return (
-            self.db.query(Notification)
+    def get_user_notifications(self, user_id: int):
+        notifications=(
+            self.db.query(Notification, User.username.label("actor_name"))
+            .join(User, Notification.actor_id == User.id)
             .filter(Notification.recipient_id == user_id)
             .order_by(Notification.created_at.desc())
             .all()
         )
-    def get_unread_notifications(self, user_id: UUID):
+
+        return [
+            {
+                "id": notification.Notification.id,
+                "recipient_id": notification.Notification.recipient_id,
+                "actor_id": notification.Notification.actor_id,
+                "actor_name": notification.actor_name,
+                "type": notification.Notification.type,
+                "target_id": notification.Notification.target_id,     
+                "target_type": notification.Notification.target_type,
+                "is_read": notification.Notification.is_read,
+                "created_at": notification.Notification.created_at          
+            }
+            for notification in notifications
+        ]  
+
+        
+    def get_unread_notifications(self, user_id: int):
         return (
             self.db.query(Notification)
             .filter(
@@ -31,7 +55,7 @@ class NotificationRepository:
             .order_by(Notification.created_at.desc())
             .all()
         )
-    def get_by_id(self, notification_id: UUID):
+    def get_by_id(self, notification_id: int):
         return (
             self.db.query(Notification)
             .filter(Notification.id == notification_id)
@@ -42,7 +66,7 @@ class NotificationRepository:
         self.db.commit()
         self.db.refresh(notification)
         return notification
-    def mark_all_as_read(self, user_id: UUID):
+    def mark_all_as_read(self, user_id: int):
         notifications = (
             self.db.query(Notification)
             .filter(
@@ -62,7 +86,7 @@ class NotificationRepository:
         self.db.delete(notification)
         self.db.commit()
 
-    def unread_count(self, user_id: UUID):
+    def unread_count(self, user_id: int):
         return (
             self.db.query(Notification)
             .filter(

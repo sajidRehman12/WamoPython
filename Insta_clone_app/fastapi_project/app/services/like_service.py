@@ -2,13 +2,13 @@ from uuid import UUID
 
 from app.models.tables import Like
 from app.services.notification_service import NotificationService
-
+from app.repositories.like_repository import LikeRepository
 
 class LikeService:
 
     def __init__(
         self,
-        like_repo,
+        like_repo:LikeRepository,
         post_repo,
         notification_service: NotificationService
     ):
@@ -18,10 +18,10 @@ class LikeService:
 
     def like_post(
         self,
-        post_id: UUID,
-        user_id: UUID
+        post_id: int,
+        user_id: int
     ):
-        post = self.post_repo.get_by_id(post_id)
+        post = self.post_repo.get_by_id(post_id,user_id)
 
         if not post:
             raise ValueError("Post not found")
@@ -54,8 +54,8 @@ class LikeService:
 
     def unlike_post(
         self,
-        post_id: UUID,
-        user_id: UUID
+        post_id: int,
+        user_id: int
     ):
         like = self.like_repo.get_user_like(
             user_id=user_id,
@@ -71,4 +71,13 @@ class LikeService:
             "message": "Post unliked successfully"
         }
     
+
+    def likes_on_a_post(
+        self,
+        post_id: int,
+    ):
+        like = self.like_repo.get_likes_on_a_post(
+            post_id=post_id
+        )
+        return like
         

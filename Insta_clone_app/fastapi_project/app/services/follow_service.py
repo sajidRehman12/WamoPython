@@ -1,15 +1,14 @@
 from uuid import UUID
-
 from app.models.tables import Follow
-
+from app.repositories.follow_repository import FollowRepository
 
 class FollowService:
 
-    def __init__(self, follow_repo, notification_service):
+    def __init__(self, follow_repo : FollowRepository, notification_service):
         self.follow_repo = follow_repo
         self.notification_service = notification_service
 
-    def follow_user(self, follower_id: UUID, following_id: UUID):
+    def follow_user(self, follower_id: int, following_id: int):
 
         if follower_id == following_id:
             raise ValueError("Cannot follow yourself")
@@ -32,8 +31,7 @@ class FollowService:
         )
 
         return follow
-
-    def unfollow_user(self, follower_id: UUID, following_id: UUID):
+    def unfollow_user(self, follower_id: int, following_id: int):
 
         follow = self.follow_repo.get_follow(follower_id, following_id)
 
@@ -43,3 +41,15 @@ class FollowService:
         self.follow_repo.delete(follow)
 
         return {"message": "Unfollowed"}
+    
+    def get_followers_list(self,user_id):
+        return self.follow_repo.count_followers(user_id=user_id)
+    
+    def get_following_list(self,user_id):
+        return self.follow_repo.count_following(user_id=user_id)
+
+    def get_full_list_followers_list(self,user_id):
+        return self.follow_repo.list_followers(user_id=user_id)
+    
+    def get_full_list_following_list(self,user_id):
+        return self.follow_repo.list_following(user_id=user_id)

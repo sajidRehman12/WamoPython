@@ -1,65 +1,36 @@
 import uuid
-from datetime import datetime ,timezone ,timedelta
-from sqlalchemy import String, Text, DateTime, func
-from sqlalchemy.dialects.postgresql import UUID
+from datetime import datetime, timezone, timedelta
+from sqlalchemy import String, Text, DateTime, func, Integer, ForeignKey, Boolean, CheckConstraint, UniqueConstraint
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from app.database.database import Base
-from sqlalchemy import CheckConstraint ,ForeignKey ,Boolean
 
 def _expires_at_default() -> datetime:
     return datetime.now(timezone.utc) + timedelta(hours=24)
 
 
-import uuid
-from datetime import datetime
-
-from sqlalchemy import String, DateTime, ForeignKey
-from sqlalchemy.dialects.postgresql import UUID
-from sqlalchemy.orm import Mapped, mapped_column
-
-from app.database.database import Base
-
-
 class Token(Base):
     __tablename__ = "tokens"
 
-    id: Mapped[uuid.UUID] = mapped_column(
-        UUID(as_uuid=True),
-        primary_key=True,
-        default=uuid.uuid4
-    )
-    token: Mapped[str] = mapped_column(
-        String,
-        nullable=False,
-        unique=True
-    )
-    
-    status: Mapped[str] = mapped_column(
-        String(20),
-        default="active"
-    )
-
+    # Changed from UUID to plain Integer primary key
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    token: Mapped[str] = mapped_column(String, nullable=False, unique=True)
+    status: Mapped[str] = mapped_column(String(20), default="active")
 
 
 class Follow(Base):
     __tablename__ = "follows"
 
-    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-    follower_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True)
-    following_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True)
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    # Changed foreign keys from UUID to Integer
+    follower_id: Mapped[int] = mapped_column(Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True)
+    following_id: Mapped[int] = mapped_column(Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
-
-
 
     follower: Mapped["User"] = relationship("User", foreign_keys=[follower_id], back_populates="following")
     following_user: Mapped["User"] = relationship("User", foreign_keys=[following_id], back_populates="followers")
 
-
-
     __table_args__ = (
-        # unique constraint prevents duplicate follows
-        __import__("sqlalchemy").UniqueConstraint("follower_id", "following_id", name="uq_follow_pair"),
-        # DB-level check: can't follow yourself
+        UniqueConstraint("follower_id", "following_id", name="uq_follow_pair"),
         CheckConstraint("follower_id != following_id", name="ck_no_self_follow"),
     )
 
@@ -67,8 +38,9 @@ class Follow(Base):
 class Post(Base):
     __tablename__ = "posts"
 
-    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-    user_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True)
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    # Changed foreign key from UUID to Integer
+    user_id: Mapped[int] = mapped_column(Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True)
     image_url: Mapped[str] = mapped_column(String(500), nullable=False)
     caption: Mapped[str | None] = mapped_column(Text, nullable=True)
     scheduled_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
@@ -84,22 +56,24 @@ class Post(Base):
 class Like(Base):
     __tablename__ = "likes"
 
-    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-    user_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
-    post_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), ForeignKey("posts.id", ondelete="CASCADE"), nullable=False)
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    # Changed foreign keys from UUID to Integer
+    user_id: Mapped[int] = mapped_column(Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
+    post_id: Mapped[int] = mapped_column(Integer, ForeignKey("posts.id", ondelete="CASCADE"), nullable=False)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
 
     user: Mapped["User"] = relationship("User", back_populates="likes")
     post: Mapped["Post"] = relationship("Post", back_populates="likes")
 
     __table_args__ = (
-        __import__("sqlalchemy").UniqueConstraint("user_id", "post_id", name="uq_like_once"),
+        UniqueConstraint("user_id", "post_id", name="uq_like_once"),
     )
+
 
 class User(Base):
     __tablename__ = "users"
 
-    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
     username: Mapped[str] = mapped_column(String(50), unique=True, nullable=False, index=True)
     email: Mapped[str] = mapped_column(String(255), unique=True, nullable=False, index=True)
     password_hash: Mapped[str] = mapped_column(String(255), nullable=False)
@@ -108,9 +82,6 @@ class User(Base):
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
     updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
 
-
-
-    # RELATIONSHIPS ARE DEFINED BELOW
     posts: Mapped[list["Post"]] = relationship("Post", back_populates="author", cascade="all, delete-orphan")
     stories: Mapped[list["Story"]] = relationship("Story", back_populates="author", cascade="all, delete-orphan")
     comments: Mapped[list["Comment"]] = relationship("Comment", back_populates="author", cascade="all, delete-orphan")
@@ -124,53 +95,46 @@ class User(Base):
 class Comment(Base):
     __tablename__ = "comments"
 
-    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-    post_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), ForeignKey("posts.id", ondelete="CASCADE"), nullable=False, index=True)
-    user_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
-    parent_id: Mapped[uuid.UUID | None] = mapped_column(UUID(as_uuid=True), ForeignKey("comments.id", ondelete="CASCADE"), nullable=True, index=True)
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    # Changed foreign keys from UUID to Integer
+    post_id: Mapped[int] = mapped_column(Integer, ForeignKey("posts.id", ondelete="CASCADE"), nullable=False, index=True)
+    user_id: Mapped[int] = mapped_column(Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
+    parent_id: Mapped[int | None] = mapped_column(Integer, ForeignKey("comments.id", ondelete="CASCADE"), nullable=True, index=True)
     body: Mapped[str] = mapped_column(Text, nullable=False)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
 
-
-    # RELATIONSHIPS ARE DEFINED BELOW
     author: Mapped["User"] = relationship("User", back_populates="comments")
     post: Mapped["Post"] = relationship("Post", back_populates="comments")
     replies: Mapped[list["Comment"]] = relationship("Comment", back_populates="parent", cascade="all, delete-orphan")
     parent: Mapped["Comment | None"] = relationship("Comment", back_populates="replies", remote_side="Comment.id")
 
 
-
-class Story(Base):
+class   Story(Base):
     __tablename__ = "stories"
 
-    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-    user_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True)
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    # Changed foreign key from UUID to Integer
+    user_id: Mapped[int] = mapped_column(Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True)
     media_url: Mapped[str] = mapped_column(String(500), nullable=False)
-    media_type: Mapped[str] = mapped_column(String(10), nullable=False)  # "image" | "video"
+    media_type: Mapped[str] = mapped_column(String(10), nullable=False)
     expires_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_expires_at_default, index=True)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
 
-
-    # RELATIONSHIPS ARE DEFINED BELOW
     author: Mapped["User"] = relationship("User", back_populates="stories")
-
 
 
 class Notification(Base):
     __tablename__ = "notifications"
 
-    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-    recipient_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True)
-    actor_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
-    # "like" | "comment" | "reply" | "follow"
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    # Changed foreign keys and polymorphic target identifier from UUID to Integer
+    recipient_id: Mapped[int] = mapped_column(Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True)
+    actor_id: Mapped[int] = mapped_column(Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
     type: Mapped[str] = mapped_column(String(20), nullable=False)
-    # polymorphic ref — points to post/comment/story id depending on type
-    target_id: Mapped[uuid.UUID | None] = mapped_column(UUID(as_uuid=True), nullable=True)
-    target_type: Mapped[str | None] = mapped_column(String(20), nullable=True)  # "post" | "comment" | "story"
+    target_id: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    target_type: Mapped[str | None] = mapped_column(String(20), nullable=True)
     is_read: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False, index=True)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
-
-
 
     recipient: Mapped["User"] = relationship("User", foreign_keys=[recipient_id], back_populates="notifications_received")
     actor: Mapped["User"] = relationship("User", foreign_keys=[actor_id], back_populates="notifications_triggered")

@@ -14,10 +14,10 @@ class NotificationService:
 
     def create_notification(
         self,
-        recipient_id: UUID,
-        actor_id: UUID,
+        recipient_id: int,
+        actor_id: int,
         notification_type: str,
-        target_id: UUID | None = None,
+        target_id: int | None = None,
         target_type: str | None = None
     ):
         notification = Notification(
@@ -32,19 +32,19 @@ class NotificationService:
 
     def get_my_notifications(
         self,
-        user_id: UUID
+        user_id: int
     ):
         return self.notification_repo.get_user_notifications(user_id)
 
     def get_my_unread_notifications(
         self,
-        user_id: UUID
+        user_id: int
     ):
         return self.notification_repo.get_unread_notifications(user_id)
 
     def get_unread_count(
         self,
-        user_id: UUID
+        user_id: int
     ):
         return {
             "unread_count":
@@ -53,8 +53,8 @@ class NotificationService:
 
     def mark_notification_as_read(
         self,
-        notification_id: UUID,
-        user_id: UUID
+        notification_id: int,
+        user_id: int
     ):
         notification = self.notification_repo.get_by_id(
             notification_id
@@ -63,18 +63,21 @@ class NotificationService:
         if not notification:
             raise ValueError("Notification not found")
 
-        if notification.recipient_id != user_id:
-            raise PermissionError(
-                "You cannot access this notification"
+        if notification.recipient_id == user_id:
+            return self.notification_repo.mark_as_read(
+                notification
+        
+            )
+            
+        raise PermissionError(
+               f"You cannot access this notification {notification.recipient_id}  {user_id}"
+
             )
 
-        return self.notification_repo.mark_as_read(
-            notification
-        )
 
     def mark_all_notifications_as_read(
         self,
-        user_id: UUID
+        user_id: int
     ):
         count = self.notification_repo.mark_all_as_read(
             user_id
@@ -87,8 +90,8 @@ class NotificationService:
 
     def delete_notification(
         self,
-        notification_id: UUID,
-        user_id: UUID
+        notification_id: int,
+        user_id: int
     ):
         notification = self.notification_repo.get_by_id(
             notification_id
@@ -99,7 +102,7 @@ class NotificationService:
 
         if notification.recipient_id != user_id:
             raise PermissionError(
-                "You cannot delete this notification"
+                f"You cannot delete this notification {user_id}  {notification.recipient_id}"
             )
 
         self.notification_repo.delete(notification)

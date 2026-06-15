@@ -1,5 +1,5 @@
 from uuid import UUID
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, status ,Form
 from sqlalchemy.orm import Session
 from app.database.database import get_db
 from app.core.oauth import get_current_user
@@ -21,12 +21,13 @@ def get_comment_service(db: Session = Depends(get_db)):
 
 @router.post("/{post_id}")
 def create_comment(
-    post_id: UUID,
-    body: str,
-    parent_id: UUID | None = None,
+    post_id: int,
+    parent_id: int| None = Form(None),
+    body: str = Form(...),
     current_user=Depends(get_current_user),
     service: CommentService = Depends(get_comment_service)
 ):
+    print(parent_id)
     try:
         return service.create_comment(
             post_id=post_id,
@@ -40,17 +41,36 @@ def create_comment(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail=str(e)
         )
+    
+
 @router.get("/post/{post_id}")
 def get_comments(
-    post_id: UUID,
+    post_id: int,
+    current_user=Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
     repo = CommentRepository(db)
     return repo.get_by_post(post_id)
 
+
+@router.get("/post/{post_id}/{comment_id}")
+def get_comments(
+    post_id: int,
+    comment_id:int,
+    current_user=Depends(get_current_user),
+
+    db: Session = Depends(get_db)
+):
+    repo = CommentRepository(db)
+    return repo.get_by_post(post_id)
+
+
+
 @router.get("/{comment_id}/replies")
 def get_replies(
-    comment_id: UUID,
+    comment_id: int,
+    current_user=Depends(get_current_user),
+
     db: Session = Depends(get_db)
 ):
     repo = CommentRepository(db)
@@ -58,7 +78,7 @@ def get_replies(
 
 @router.delete("/{comment_id}")
 def delete_comment(
-    comment_id: UUID,
+    comment_id: int,
     current_user=Depends(get_current_user),
     service: CommentService = Depends(get_comment_service)
 ):

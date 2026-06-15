@@ -1,6 +1,13 @@
 from sqlalchemy.orm import Session
 from sqlalchemy import select
 from app.models.tables import User
+# from app.models.post import Post
+# from app.models.follow import Follow    
+# from app.models.user import User
+# from app.models.comment import Comment
+# from app.models.token import Token
+# from app.models.notification import Notification
+# from app.models.like import Like 
 from fastapi import HTTPException
 class UserRepository:
 
@@ -14,8 +21,9 @@ class UserRepository:
         return user
 
     def get_by_id(self, user_id: str):
-        return self.db.get(User, user_id)
-
+        # return self.db.get(User, user_id)
+        stmt = select(User).where(User.id == user_id)
+        return self.db.scalars(stmt).first()
     def get_by_username(self, username: str):
         stmt = select(User).where(User.username == username)
         return self.db.scalars(stmt).first()

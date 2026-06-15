@@ -1,12 +1,13 @@
 from fastapi.security import OAuth2PasswordBearer 
 from fastapi import Depends, HTTPException, Header
 
-from app.database.mock_db import JWT_DB
 from fastapi import Depends
 from fastapi import HTTPException
 from jose import jwt
 from jose import JWTError
 from sqlalchemy.orm import Session
+from app.services.auth_service import AuthService
+from app.repositories.token_repository import TokenRepository
 from app.database.database import get_db
 from app.core.security import (
     SECRET_KEY,
@@ -17,6 +18,8 @@ def get_current_user(
     authorization: str = Header(None),
     db: Session = Depends(get_db)
 ):
+    scheme,token=authorization.split()
+    tokenRepo=TokenRepository(db)
     credentials_exception = HTTPException(
         status_code=401,
         detail="Could not validate credentials"
@@ -27,7 +30,6 @@ def get_current_user(
         detail="you are not logged in"
     )
 
-    scheme,token=authorization.split()
     try:
         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
         user_id = payload.get("user_id")
@@ -36,12 +38,9 @@ def get_current_user(
             raise credentials_exception
     except JWTError:
         raise credentials_exception
-    try:
-        for o in JWT_DB:
-            if o["token"]==authorization:
-                if(o["status"]!="active"):
-                    raise logged_out_exception
-    except:
+    
+    response=tokenRepo.is_token_blacklisted(token=token)
+    if response is  True:
         raise logged_out_exception
 
     repo = UserRepository(db)

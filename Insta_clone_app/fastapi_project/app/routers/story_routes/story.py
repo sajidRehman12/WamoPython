@@ -32,8 +32,7 @@ async def create_story(
 
     try:
         return service.create_story(
-            # user_id=current_user.id,
-            user_id="226497be-6fb2-428c-ab71-f4734a900916",
+            user_id=current_user.id,
             media_url=media_url,
             media_type=media_type
         )
@@ -52,9 +51,19 @@ def get_active_stories(
 ):
     return service.get_active_stories()
 
+
+@router.get("/my-stories")
+def get_user_stories(
+    current_user=Depends(get_current_user),
+
+    service: StoryService = Depends(get_story_service)
+):
+    return service.get_user_stories(current_user.id)
+
+
 @router.get("/user/{user_id}")
 def get_user_stories(
-    user_id: UUID,
+    user_id: int,
     current_user=Depends(get_current_user),
 
     service: StoryService = Depends(get_story_service)
@@ -65,12 +74,14 @@ def get_user_stories(
 def get_followings_stories(service: StoryService = Depends(get_story_service),
                                current_user=Depends(get_current_user)
 ):
-    return service.get_stories_of_followings(current_user.id)
+    stories=service.get_stories_of_followings(current_user.id)
+    print(stories)
+    return stories
 
 
 @router.delete("/{story_id}")
 def delete_story(
-    story_id: UUID,
+    story_id: int,
     current_user=Depends(get_current_user),
     service: StoryService = Depends(get_story_service)
 ):

@@ -1,8 +1,8 @@
-from fastapi import APIRouter, HTTPException ,Request ,Header
+from fastapi import APIRouter, HTTPException ,Request ,Header,status
 from app.schemas.auth import RegisterRequest, LoginRequest, TokenResponse
-from fastapi.security import OAuth2PasswordRequestForm
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
+from app.schemas.auth import TokenResponse
 from app.services.auth_service import AuthService
 from app.services.user_service import UserService
 from app.database.database import get_db
@@ -13,26 +13,31 @@ from app.repositories.token_repository import TokenRepository
 
 router = APIRouter(prefix="/auth", tags=["Auth"])
 
-@router.post("/register")
-def register(userRequest:RegisterRequest, db: Session = Depends(get_db)):
-
-    service = UserService(db)
-
+@router.post("/register", status_code=status.HTTP_201_CREATED,
+             response_model=TokenResponse)
+def register(userRequest:RegisterRequest, 
+             db: Session = Depends(get_db),
+            
+             ):
+    userRepo=UserRepository(db)
+    tokenrepo=TokenRepository(db)
+    authservice = AuthService(userRepo,tokenrepo)
+    userService=UserService(userRepo)
     try:
-        user = service.register_user(userRequest.username,userRequest.email, userRequest.password)
-        return {
-            "id": str(user.id),
-            "username": user.username,
-            "email": user.email
-        }
-
+        user = userService.register_user(userRequest.username,userRequest.email, userRequest.password)
+        token = authservice.login_user(
+             username=userRequest.username,
+          password=userRequest.password
+          )
+        return TokenResponse(access_token=token)
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
 
-@router.post("/login")
+@router.post("/login",response_model=TokenResponse
+)
 def login(
     loginRequest: LoginRequest,
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
 ):
     tokenrepo=TokenRepository(db)
     repo = UserRepository(db)
@@ -43,16 +48,14 @@ def login(
         password=loginRequest.password
     )
 
+
     if not token:
         raise HTTPException(
             status_code=401,
             detail="Invalid credentials"
         )
 
-    return {
-        "access_token": token,
-        "token_type": "bearer"
-    }
+    return TokenResponse(access_token=token)
 
 @router.get("/me")
 def get_profile(

@@ -4,7 +4,6 @@ from app.repositories.user_repository import UserRepository
 from app.repositories.token_repository import TokenRepository
 from app.core.security import create_access_token
 from passlib.context import CryptContext
-from app.database.mock_db import JWT_DB
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 
@@ -34,10 +33,8 @@ class AuthService:
         self.tokenrepo.save_token(token=token,status="active")
         
 
-        return {
-            "access_token": token,
-            "token_type": "bearer",
-        }
+        return token
+        
     
 
     def logout(self,token:str):

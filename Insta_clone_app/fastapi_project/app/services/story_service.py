@@ -4,7 +4,7 @@ from datetime import datetime, timedelta
 from pathlib import Path
 from app.models.tables import Story
 from fastapi import HTTPException
-
+from app.repositories.story_repository import StoryRepository
 ALLOWED_EXTENSIONS = {".jpg", ".jpeg", ".png",".mp4"}
 
 UPLOAD_DIR = Path("stories")
@@ -15,7 +15,7 @@ class StoryService:
 
     def __init__(
         self,
-        story_repo,
+        story_repo :StoryRepository,
         notification_service
     ):
         self.story_repo = story_repo
@@ -45,7 +45,7 @@ class StoryService:
 
     def create_story(
         self,
-        user_id: UUID,
+        user_id: int,
         media_url: str,
         media_type: str
     ):
@@ -60,10 +60,10 @@ class StoryService:
     def get_active_stories(self):
         return self.story_repo.get_active_stories()
 
-    def get_user_stories(self, user_id: UUID):
+    def get_user_stories(self, user_id: int):
         return self.story_repo.get_user_stories(user_id)
 
-    def delete_story(self, story_id: UUID, user_id: UUID):
+    def delete_story(self, story_id: int, user_id: int):
         story = self.story_repo.get_by_id(story_id)
         if not story:
             raise ValueError("Story not found")
